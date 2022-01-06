@@ -1,14 +1,14 @@
 #include "pipe_networking.h"
-static void sighandler(int signo);
+//static void sighandler(int signo);
 
 int main() {
-  signal(SIGINT, sighandler);
-  int to_client;
-  int from_client;
+  //signal(SIGINT, sighandler);
+  int client;
+  int sd = server_setup();
 
   while(1) {
     printf("\nStarting up or a client joined/exited...\n");
-    from_client = server_setup();
+    client = server_connect(sd);
 
     int f;
     f = fork();
@@ -16,12 +16,12 @@ int main() {
     //subserver
     if (f == 0) {
       //char buff[BUFFER_SIZE];
-      to_client = server_connect(from_client);
+      //to_client = server_connect(from_client);
 
       while(1) {
         //recieve data
         char buff[BUFFER_SIZE];
-        int r = read(from_client, buff, sizeof(buff));
+        int r = read(client, buff, sizeof(buff));
         if (!r) break;
 
         //process
@@ -29,20 +29,19 @@ int main() {
         strcat(buff, "manipulated");
 
         //sends back
-        write(to_client, buff, sizeof(buff));
+        write(client, buff, sizeof(buff));
       }
     } else { //server
-      remove(WKP);
-      close(from_client);
-      close(to_client);
+      //remove(WKP);
+      close(client);
     }
   }
   return 0;
 }
 
-static void sighandler(int signo) {
-  if (signo == SIGINT) {
-    remove(WKP);
-    exit(EXIT_SUCCESS);
-  }
-}
+// static void sighandler(int signo) {
+//   if (signo == SIGINT) {
+//     remove(WKP);
+//     exit(EXIT_SUCCESS);
+//   }
+// }
